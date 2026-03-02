@@ -14,9 +14,6 @@ import LenisProvider from "@/components/LenisProvider";
 function SectionTransition({ children }: { children: React.ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
 
-  // Tie the animation directly to the scroll position for a continuous, liquid feel.
-  // Starts when the top of the section enters the bottom of the viewport.
-  // Ends when the top of the section reaches 30% down the viewport (finishes faster = stronger feel).
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start end", "start 20%"]
