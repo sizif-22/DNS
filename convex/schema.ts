@@ -95,6 +95,7 @@ export default defineSchema({
     destinationY: v.optional(v.number()),
     videoTimestamp: v.number(),
     notes: v.optional(v.string()),
+    isSetPiece: v.optional(v.boolean()),
     createdAt: v.number(),
   })
     .index("by_matchId", ["matchId"])
@@ -175,6 +176,27 @@ export default defineSchema({
   })
     .index("by_userId", ["userId"])
     .index("by_userId_unread", ["userId", "isRead"]),
+
+  // ── Player Engine Profiles ─────────────────────────────────────────────
+  playerEngineProfiles: defineTable({
+    playerId: v.id("users"),
+    playerName: v.string(),
+    unit: v.string(),
+    topArchetype: v.string(),
+    topPct: v.number(),
+    matchCount: v.number(),
+    archetypes: v.any(), // record of string to number
+    coreFeatures: v.any(), // record of string to number
+    contextFeatures: v.any(), // record of string to number
+    twins: v.array(
+      v.object({
+        player_name: v.string(),
+        similarity: v.number(),
+        context: v.any(), // record of string to number
+      })
+    ),
+    createdAt: v.number(),
+  }).index("by_playerId", ["playerId"]),
 
   // ── Saved Filters (scouts) ─────────────────────────────────────────────
   savedFilters: defineTable({

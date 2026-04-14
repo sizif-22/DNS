@@ -15,9 +15,6 @@ const EVENT_TYPES = [
     { value: "tackle", label: "Tackle", color: "#06B6D4" },
     { value: "interception", label: "Interception", color: "#22C55E" },
     { value: "aerial", label: "Aerial Duel", color: "#EC4899" },
-    { value: "foul", label: "Foul", color: "#F97316" },
-    { value: "save", label: "Save", color: "#14B8A6" },
-    { value: "set_piece", label: "Set Piece", color: "#A855F7" },
 ];
 
 const OUTCOMES: Record<string, string[]> = {
@@ -28,9 +25,6 @@ const OUTCOMES: Record<string, string[]> = {
     tackle: ["Won", "Lost", "Foul"],
     interception: ["Successful", "Failed"],
     aerial: ["Won", "Lost"],
-    foul: ["Yellow Card", "Red Card", "No Card"],
-    save: ["Saved", "Parried", "Caught"],
-    set_piece: ["Goal", "On Target", "Off Target", "Cleared"],
 };
 
 /* ── Format timestamp ─────────────────────────────────────────────────── */
@@ -46,6 +40,7 @@ function PitchMap({
     onPitchClick,
     clickMode,
     pendingOrigin,
+    pendingDestination,
 }: {
     events: Array<{
         _id: string;
@@ -58,6 +53,7 @@ function PitchMap({
     onPitchClick: (x: number, y: number) => void;
     clickMode: "origin" | "destination" | null;
     pendingOrigin: { x: number; y: number } | null;
+    pendingDestination?: { x: number; y: number } | null;
 }) {
     const svgRef = useRef<SVGSVGElement>(null);
 
@@ -145,16 +141,44 @@ function PitchMap({
                     );
                 })}
 
+                {/* Pending line connecting origin and destination */}
+                {pendingOrigin && pendingDestination && (
+                    <line
+                        x1={(pendingOrigin.x / 100) * 68}
+                        y1={(pendingOrigin.y / 100) * 105}
+                        x2={(pendingDestination.x / 100) * 68}
+                        y2={(pendingDestination.y / 100) * 105}
+                        stroke="#3B82F6"
+                        strokeWidth="0.4"
+                        strokeOpacity="0.6"
+                        strokeDasharray="1,0.5"
+                    />
+                )}
+
                 {/* Pending origin marker */}
                 {pendingOrigin && (
                     <circle
                         cx={(pendingOrigin.x / 100) * 68}
                         cy={(pendingOrigin.y / 100) * 105}
-                        r="1.5"
-                        fill="none"
-                        stroke="#00FF87"
-                        strokeWidth="0.4"
-                        className="animate-pulse"
+                        r="1.2"
+                        fill="#00FF87"
+                        fillOpacity="0.8"
+                        stroke="white"
+                        strokeWidth="0.2"
+                        className={!pendingDestination ? "animate-pulse" : ""}
+                    />
+                )}
+                
+                {/* Pending destination marker */}
+                {pendingDestination && (
+                    <circle
+                        cx={(pendingDestination.x / 100) * 68}
+                        cy={(pendingDestination.y / 100) * 105}
+                        r="1.2"
+                        fill="#3B82F6"
+                        fillOpacity="0.8"
+                        stroke="white"
+                        strokeWidth="0.2"
                     />
                 )}
             </svg>
@@ -197,6 +221,7 @@ export default function MatchAnalysisPage() {
     const [pendingDestination, setPendingDestination] = useState<{ x: number; y: number } | null>(null);
     const [videoTimestamp, setVideoTimestamp] = useState(0);
     const [eventNotes, setEventNotes] = useState("");
+    const [isSetPiece, setIsSetPiece] = useState(false);
     const [logLoading, setLogLoading] = useState(false);
 
     /* ── Summary State ────────────────────────────────────────────────── */
@@ -264,12 +289,14 @@ export default function MatchAnalysisPage() {
                 destinationY: pendingDestination?.y,
                 videoTimestamp,
                 notes: eventNotes || undefined,
+                isSetPiece,
             });
 
             // Reset
             setPendingOrigin(null);
             setPendingDestination(null);
             setEventNotes("");
+            setIsSetPiece(false);
             setVideoTimestamp((prev) => prev);
         } catch {
             /* silent */
@@ -404,8 +431,21 @@ export default function MatchAnalysisPage() {
                                         step="0.5"
                                         value={videoTimestamp}
                                         onChange={(e) => setVideoTimestamp(Number(e.target.value))}
-                                        className="w-full max-w-[150px] px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-[#3B82F6]/50 transition-all"
+                                        className="w-24 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-[#3B82F6]"
                                     />
+                                    
+                                    <div className="flex items-center justify-between mt-5 w-48">
+                                        <label className="block text-xs font-medium text-white/50">Is this a Set Piece?</label>
+                                        <button
+                                            onClick={() => setIsSetPiece(!isSetPiece)}
+                                            className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all cursor-pointer border ${isSetPiece
+                                                ? "bg-[#A855F7]/10 text-[#A855F7] border-[#A855F7]/30"
+                                                : "bg-white/[0.03] text-white/40 border-transparent hover:bg-white/5"
+                                            }`}
+                                        >
+                                            {isSetPiece ? "Yes" : "No"}
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {/* Column 2: Outcome & Pitch Controls */}
@@ -437,11 +477,11 @@ export default function MatchAnalysisPage() {
                                                     setPendingDestination(null);
                                                     setClickMode("origin");
                                                 }}
-                                                className={`flex-1 px-3 py-2 text-center rounded-lg text-xs transition-all cursor-pointer border ${pendingOrigin
-                                                    ? "bg-[#00FF87]/10 text-[#00FF87] border-[#00FF87]/30"
-                                                    : clickMode === "origin"
+                                                className={`flex-1 px-3 py-2 text-center rounded-lg text-xs transition-all cursor-pointer border ${clickMode === "origin"
                                                         ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/30 animate-pulse"
-                                                        : "bg-white/[0.03] text-white/40 border-white/[0.06] hover:bg-white/5"
+                                                        : pendingOrigin
+                                                            ? "bg-[#00FF87]/10 text-[#00FF87] border-[#00FF87]/30"
+                                                            : "bg-white/[0.03] text-white/40 border-white/[0.06] hover:bg-white/5"
                                                     }`}
                                             >
                                                 {pendingOrigin ? `Origin: ${pendingOrigin.x.toFixed(0)}%, ${pendingOrigin.y.toFixed(0)}%` : "Set Origin"}
@@ -449,11 +489,11 @@ export default function MatchAnalysisPage() {
                                             <button
                                                 onClick={() => setClickMode("destination")}
                                                 disabled={!pendingOrigin}
-                                                className={`flex-1 px-3 py-2 text-center rounded-lg text-xs transition-all cursor-pointer border ${pendingDestination
-                                                    ? "bg-[#3B82F6]/10 text-[#3B82F6] border-[#3B82F6]/30"
-                                                    : clickMode === "destination"
+                                                className={`flex-1 px-3 py-2 text-center rounded-lg text-xs transition-all cursor-pointer border ${clickMode === "destination"
                                                         ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/30 animate-pulse"
-                                                        : "bg-white/[0.03] text-white/40 border-white/[0.06] hover:bg-white/5 disabled:opacity-30"
+                                                        : pendingDestination
+                                                            ? "bg-[#3B82F6]/10 text-[#3B82F6] border-[#3B82F6]/30"
+                                                            : "bg-white/[0.03] text-white/40 border-white/[0.06] hover:bg-white/5 disabled:opacity-30"
                                                     }`}
                                             >
                                                 {pendingDestination ? `Dest: ${pendingDestination.x.toFixed(0)}%, ${pendingDestination.y.toFixed(0)}%` : "Set Destination"}
@@ -502,6 +542,7 @@ export default function MatchAnalysisPage() {
                             onPitchClick={handlePitchClick}
                             clickMode={clickMode}
                             pendingOrigin={pendingOrigin}
+                            pendingDestination={pendingDestination}
                         />
                         <div className="flex flex-wrap gap-2 mt-4">
                             {EVENT_TYPES.map((et) => {
@@ -545,9 +586,14 @@ export default function MatchAnalysisPage() {
                                                     style={{ backgroundColor: color }}
                                                 />
                                                 <div>
-                                                    <p className="text-xs font-medium text-white capitalize">
+                                                    <p className="text-xs font-medium text-white capitalize flex items-center">
                                                         {ev.eventType.replace("_", " ")}
-                                                        <span className="text-white/40 font-normal ml-1">· {ev.outcome}</span>
+                                                        <span className="text-white/40 font-normal mx-1.5">· {ev.outcome}</span>
+                                                        {ev.isSetPiece && (
+                                                            <span className="text-[#A855F7] font-medium ml-1 text-[9px] uppercase tracking-wider bg-[#A855F7]/15 px-1.5 py-0.5 rounded">
+                                                                Set Piece
+                                                            </span>
+                                                        )}
                                                     </p>
                                                     <p className="text-[10px] text-white/25 mt-0.5">
                                                         {formatTimestamp(ev.videoTimestamp * 60)} · ({ev.originX.toFixed(0)}, {ev.originY.toFixed(0)})

@@ -15,6 +15,7 @@ export const logEvent = mutation({
         destinationY: v.optional(v.number()),
         videoTimestamp: v.number(),
         notes: v.optional(v.string()),
+        isSetPiece: v.optional(v.boolean()),
     },
     handler: async (ctx, args) => {
         const userId = await getAuthUserId(ctx);
@@ -37,6 +38,7 @@ export const logEvent = mutation({
             destinationY: args.destinationY,
             videoTimestamp: args.videoTimestamp,
             notes: args.notes,
+            isSetPiece: args.isSetPiece,
             createdAt: Date.now(),
         });
     },

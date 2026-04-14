@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
@@ -363,12 +363,17 @@ export default function OnboardingPage() {
     const [selectedRole, setSelectedRole] = useState<"player" | "analyst" | "scout" | null>(null);
 
     // Redirect if already onboarded
+    useEffect(() => {
+        if (user?.onboardingComplete) {
+            const dashPath =
+                user.role === "player" ? "/dashboard/player"
+                    : user.role === "analyst" ? "/dashboard/analyst"
+                        : "/dashboard/scout";
+            router.push(dashPath);
+        }
+    }, [user, router]);
+
     if (user?.onboardingComplete) {
-        const dashPath =
-            user.role === "player" ? "/dashboard/player"
-                : user.role === "analyst" ? "/dashboard/analyst"
-                    : "/dashboard/scout";
-        router.push(dashPath);
         return null;
     }
 
