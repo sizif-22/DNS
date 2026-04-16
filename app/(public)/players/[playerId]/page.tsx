@@ -3,198 +3,300 @@
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useParams } from "next/navigation";
-import type { Id } from "@/convex/_generated/dataModel";
+import type { Id, Doc } from "@/convex/_generated/dataModel";
 import { ArcDiagram } from "@/components/public/ArcDiagram";
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from "recharts";
-import { ShieldCheck, ShieldAlert, Activity, GitCommit, Target, BarChart2 } from "lucide-react";
+import {
+    Radar, RadarChart, PolarGrid, PolarAngleAxis,
+    PolarRadiusAxis, ResponsiveContainer, Tooltip,
+} from "recharts";
+import { ShieldCheck, ShieldAlert, ExternalLink, Play, User } from "lucide-react";
 
 export default function PlayerPublicProfile() {
     const params = useParams();
     const playerId = params.playerId as Id<"users">;
 
-    const user = useQuery(api.users.getUserById, { userId: playerId });
+    const user    = useQuery(api.users.getUserById, { userId: playerId });
     const profile = useQuery(api.engineProfiles.getProfileByPlayerId, { playerId });
+    const matches = useQuery(api.matches.getCompletedMatchesByPlayer, { playerId });
 
-    if (user === undefined || profile === undefined) {
+    if (user === undefined || profile === undefined || matches === undefined) {
         return (
-            <div className="min-h-screen bg-dns-bg text-white flex items-center justify-center">
-                <div className="w-8 h-8 border-4 border-dns-blue border-t-transparent rounded-full animate-spin" />
+            <div className="min-h-screen bg-dns-bg flex items-center justify-center">
+                <div className="w-8 h-8 border-2 border-white/10 border-t-white/60 rounded-full animate-spin" />
             </div>
         );
     }
 
     if (!user) {
         return (
-            <div className="min-h-screen bg-dns-bg text-white flex items-center justify-center">
-                <p className="text-white/40">Player not found</p>
+            <div className="min-h-screen bg-dns-bg flex items-center justify-center">
+                <p className="text-white/40 text-sm">Player not found.</p>
             </div>
         );
     }
 
-    if (!profile) {
-        return (
-            <div className="min-h-screen bg-dns-bg text-white p-8">
-                <h1 className="text-2xl font-bold">{user.name}</h1>
-                <p className="text-white/60 mt-4">No engine profile data available for this player yet.</p>
-            </div>
-        );
-    }
+    const fmt = (str: string) =>
+        str.replace(/_/g, " ").replace("p90", "per 90").replace("pct", "%").replace("iqr", "variance");
 
-    const formatFeatureName = (str: string) => {
-        return str.replace(/_/g, " ").replace("p90", "per 90").replace("pct", "%").replace("iqr", "variance");
-    };
+    const radarData = profile
+        ? Object.entries(profile.coreFeatures || {}).map(([k, v]) => ({
+              subject: fmt(k).substring(0, 14),
+              fullMark: 100,
+              val: v,
+              originalName: fmt(k),
+          }))
+        : [];
 
-    const radarData = Object.entries(profile.coreFeatures || {}).map(([key, value]) => ({
-        subject: formatFeatureName(key).substring(0, 15) + (key.length > 15 ? "..." : ""),
-        fullMark: 100,
-        val: value,
-        originalName: formatFeatureName(key)
-    }));
+    const age        = user.playerProfile?.age;
+    const height     = user.playerProfile?.height;
+    const weight     = user.playerProfile?.weight;
+    const foot       = user.playerProfile?.foot;
+    const position   = profile?.unit || user.playerProfile?.position;
+    const nationality = user.playerProfile?.nationality;
+    const club       = user.playerProfile?.currentClub;
+    const photoUrl   = user.profilePhoto;
+    const initials   = (user.name || "?").split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
 
     return (
-        <div className="min-h-screen bg-dns-bg text-white selection:bg-dns-blue/30">
-            {/* Ambient Background */}
-            <div className="fixed inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-dns-blue/10 rounded-full blur-[120px]" />
-                <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-dns-green/5 rounded-full blur-[100px]" />
+        <div className="min-h-screen bg-dns-bg text-white">
+
+            {/* ─── HERO ──────────────────────────────────────────────────────── */}
+            <div className="border-b border-white/5">
+                <div className="max-w-7xl mx-auto px-6 lg:px-10 py-10">
+                    <div className="flex items-start gap-8">
+
+                        {/* Avatar */}
+                        <div className="shrink-0">
+                            {photoUrl ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                    src={photoUrl}
+                                    alt={user.name || "Player"}
+                                    className="w-24 h-24 rounded-2xl object-cover border border-white/10 bg-white/5"
+                                />
+                            ) : (
+                                <div className="w-24 h-24 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+                                    <span className="text-2xl font-black text-white/30">
+                                        {initials || <User className="w-8 h-8" />}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Name + meta */}
+                        <div className="flex-1 min-w-0 pt-1">
+                            {/* Badges row */}
+                            <div className="flex flex-wrap items-center gap-2 mb-3">
+                                {position && (
+                                    <span className="text-[11px] font-bold uppercase tracking-widest text-dns-green bg-dns-green/10 border border-dns-green/20 px-3 py-1 rounded-full">
+                                        {position}
+                                    </span>
+                                )}
+                                {profile && profile.matchCount >= 3 ? (
+                                    <span className="text-[11px] font-semibold text-blue-400 flex items-center gap-1.5">
+                                        <ShieldCheck className="w-3.5 h-3.5" /> {profile.matchCount} verified matches
+                                    </span>
+                                ) : profile ? (
+                                    <span className="text-[11px] font-semibold text-amber-400 flex items-center gap-1.5">
+                                        <ShieldAlert className="w-3.5 h-3.5" /> {profile.matchCount} match{profile.matchCount !== 1 ? "es" : ""}
+                                    </span>
+                                ) : null}
+                            </div>
+
+                            <h1 className="text-4xl lg:text-5xl font-black tracking-tight text-white truncate">
+                                {user.name || "Unknown Player"}
+                            </h1>
+
+                            <div className="flex flex-wrap items-center gap-x-5 gap-y-1 mt-3 text-sm text-white/40">
+                                {club       && <span className="text-white/70 font-semibold">{club}</span>}
+                                {nationality && <span>{nationality}</span>}
+                                {age        && <span>{age} years old</span>}
+                                {height     && <span>{height} cm</span>}
+                                {weight     && <span>{weight} kg</span>}
+                                {foot       && <span className="capitalize">{foot} foot</span>}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <main className="relative z-10 max-w-7xl mx-auto p-4 md:p-8 lg:p-12 space-y-8">
-                
-                {/* Hero Header */}
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-white/4">
-                    <div>
-                        <div className="flex items-center gap-3 mb-3">
-                            <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs font-semibold uppercase tracking-widest text-dns-green">
-                                {profile.unit}
-                            </span>
-                            {profile.matchCount >= 3 ? (
-                                <span className="flex items-center gap-1.5 px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full text-xs font-semibold text-blue-400">
-                                    <ShieldCheck className="w-3.5 h-3.5" /> Reliable Data ({profile.matchCount} matches)
-                                </span>
-                            ) : (
-                                <span className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full text-xs font-semibold text-amber-400">
-                                    <ShieldAlert className="w-3.5 h-3.5" /> Low Reliability ({profile.matchCount} matches)
-                                </span>
-                            )}
-                        </div>
-                        <h1 className="text-4xl md:text-5xl font-black tracking-tight bg-linear-to-r from-white to-white/60 bg-clip-text text-transparent">
-                            {profile.playerName}
-                        </h1>
-                        <p className="text-lg text-white/50 mt-2 font-medium">Scout Engine Profile Report</p>
-                    </div>
-                </div>
+            {/* ─── BODY ──────────────────────────────────────────────────────── */}
+            <div className="max-w-7xl mx-auto px-6 lg:px-10 py-10">
 
-                {/* Top Section: Archetype Arc & Profile radar */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Arc Diagram Card */}
-                    <div className="bg-white/2 border border-white/4 rounded-2xl p-6 backdrop-blur-xl flex flex-col items-center justify-center min-h-[340px] relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-[50px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-                        <h2 className="text-sm font-semibold uppercase tracking-widest text-white/40 self-start w-full relative z-10 mb-6 flex items-center gap-2">
-                            <Target className="w-4 h-4 text-[#A855F7]" /> Top Archetype
-                        </h2>
-                        
-                        <div className="text-center relative z-10 mb-4">
-                            <h3 className="text-3xl font-bold bg-linear-to-r from-purple-400 to-dns-green bg-clip-text text-transparent">{profile.topArchetype}</h3>
-                            <p className="text-sm text-white/50 mt-1">Primary playstyle match</p>
-                        </div>
-                        
-                        <div className="w-full flex-1 relative z-10">
-                            <ArcDiagram archetypes={profile.archetypes} />
-                        </div>
-                    </div>
+                {/* Two column layout: main content left, sidebar right */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
 
-                    {/* Radar Chart Card */}
-                    <div className="bg-white/2 border border-white/4 rounded-2xl p-6 backdrop-blur-xl flex flex-col relative overflow-hidden group">
-                        <div className="absolute bottom-0 left-0 w-32 h-32 bg-blue-500/10 rounded-full blur-[50px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-                        <h2 className="text-sm font-semibold uppercase tracking-widest text-white/40 w-full relative z-10 mb-2 flex items-center gap-2">
-                            <Activity className="w-4 h-4 text-dns-blue" /> Core Profile
-                        </h2>
-                        <div className="flex-1 w-full relative z-10 min-h-[250px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarData}>
-                                    <PolarGrid stroke="#ffffff15" />
-                                    <PolarAngleAxis dataKey="subject" tick={{ fill: "#ffffff60", fontSize: 10 }} />
-                                    <PolarRadiusAxis angle={30} domain={[0, 'auto']} tick={false} axisLine={false} />
-                                    <Radar
-                                        name="Value"
-                                        dataKey="val"
-                                        stroke="#3B82F6"
-                                        strokeWidth={2}
-                                        fill="#3B82F6"
-                                        fillOpacity={0.2}
-                                    />
-                                    <Tooltip
-                                        contentStyle={{ backgroundColor: "#0f0f13", borderColor: "#ffffff10", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.1)" }}
-                                        labelStyle={{ color: "rgba(255,255,255,0.5)", marginBottom: "4px", fontSize: "12px", textTransform: "capitalize" }}
-                                        labelFormatter={(_, payload) => payload?.[0]?.payload?.originalName || ""}
-                                        itemStyle={{ color: "#fff", fontWeight: "bold" }}
-                                    />
-                                </RadarChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </div>
-                </div>
+                    {/* ── Left: Engine Stats ────────────────────────────────── */}
+                    <div className="lg:col-span-2 space-y-12">
 
-                {/* Bottom Section: Context Features & Twins */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Context Features */}
-                    <div className="lg:col-span-2 bg-white/2 border border-white/4 rounded-2xl p-6 backdrop-blur-xl">
-                        <h2 className="text-sm font-semibold uppercase tracking-widest text-white/40 mb-6 flex items-center gap-2">
-                            <BarChart2 className="w-4 h-4 text-dns-green" /> Contextual Metrics
-                        </h2>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            {Object.entries(profile.contextFeatures || {}).map(([key, value]) => (
-                                <div key={key} className="bg-black/30 border border-white/5 rounded-xl p-4 hover:border-white/10 transition-colors">
-                                    <p className="text-[11px] font-medium text-white/40 uppercase tracking-wider mb-2 line-clamp-1" title={formatFeatureName(key)}>
-                                        {formatFeatureName(key)}
-                                    </p>
-                                    <p className="text-xl font-bold text-white">
-                                        {String(value)}
-                                        {key.includes('pct') ? <span className="text-xs text-white/30 ml-1">%</span> : ''}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+                        {profile ? (
+                            <>
+                                {/* Archetype + Radar side by side */}
+                                <section>
+                                    <p className="text-[11px] font-bold uppercase tracking-widest text-white/25 mb-6">Engine Profile</p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
 
-                    {/* Statistical Twins */}
-                    <div className="bg-white/2 border border-white/4 rounded-2xl p-6 backdrop-blur-xl">
-                        <h2 className="text-sm font-semibold uppercase tracking-widest text-white/40 mb-6 flex items-center gap-2">
-                            <GitCommit className="w-4 h-4 text-[#F59E0B]" /> Statistical Twins
-                        </h2>
-                        <div className="space-y-3">
-                            {profile.twins?.map((twin: { player_name: string; similarity: number; context: unknown }, i: number) => {
-                                const nameMatch = twin.player_name.match(/(.+) \[(\d{4})\/(\d{4})\]/);
-                                const displayName = nameMatch ? `${nameMatch[1]} (${nameMatch[2]}/${nameMatch[3].slice(2)})` : twin.player_name;
-                                
-                                return (
-                                    <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-linear-to-r from-white/3 to-transparent border border-white/3 hover:border-white/10 transition-colors group">
+                                        {/* Archetype */}
                                         <div>
-                                            <p className="text-sm font-medium text-white/90 group-hover:text-white transition-colors">{displayName}</p>
-                                            <div className="w-32 h-1 bg-white/5 rounded-full mt-2 overflow-hidden">
-                                                <div 
-                                                    className="h-full rounded-full bg-linear-to-r from-amber-500/50 to-amber-400" 
-                                                    style={{ width: `${twin.similarity}%` }}
-                                                />
+                                            <p className="text-[10px] font-semibold text-white/35 uppercase tracking-widest mb-2">Top Archetype</p>
+                                            <h3 className="text-2xl font-black text-white mb-0.5">{profile.topArchetype}</h3>
+                                            <p className="text-xs text-white/35 mb-5">{profile.topPct}% confidence</p>
+                                            <div className="h-[160px]">
+                                                <ArcDiagram archetypes={profile.archetypes} />
                                             </div>
                                         </div>
-                                        <div className="text-right">
-                                            <p className="text-xs text-white/40 mb-0.5">Similarity</p>
-                                            <p className="text-sm font-bold text-amber-400">{twin.similarity}%</p>
+
+                                        {/* Radar */}
+                                        <div>
+                                            <p className="text-[10px] font-semibold text-white/35 uppercase tracking-widest mb-2">Core DNA</p>
+                                            <div className="h-[220px]">
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+                                                        <PolarGrid stroke="rgba(255,255,255,0.06)" />
+                                                        <PolarAngleAxis dataKey="subject" tick={{ fill: "rgba(255,255,255,0.30)", fontSize: 10 }} />
+                                                        <PolarRadiusAxis angle={30} domain={[0, "auto"]} tick={false} axisLine={false} />
+                                                        <Radar name="Value" dataKey="val" stroke="#00FF87" strokeWidth={2} fill="#00FF87" fillOpacity={0.12} />
+                                                        <Tooltip
+                                                            contentStyle={{ background: "#12121a", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, fontSize: 12 }}
+                                                            labelFormatter={(_, p) => p?.[0]?.payload?.originalName || ""}
+                                                            itemStyle={{ color: "#fff", fontWeight: 700 }}
+                                                        />
+                                                    </RadarChart>
+                                                </ResponsiveContainer>
+                                            </div>
                                         </div>
                                     </div>
-                                );
-                            })}
-                            
-                            {(!profile.twins || profile.twins.length === 0) && (
-                                <p className="text-sm text-white/40 text-center py-4">No twins found</p>
-                            )}
-                        </div>
-                    </div>
-                </div>
+                                </section>
 
-            </main>
+                                {/* Contextual Metrics */}
+                                {Object.keys(profile.contextFeatures || {}).length > 0 && (
+                                    <section>
+                                        <p className="text-[11px] font-bold uppercase tracking-widest text-white/25 mb-5">Contextual Metrics</p>
+                                        <div className="grid grid-cols-3 gap-px bg-white/5 border border-white/5 rounded-xl overflow-hidden">
+                                            {Object.entries(profile.contextFeatures || {}).map(([key, value]) => (
+                                                <div key={key} className="bg-dns-bg px-5 py-4 hover:bg-white/3 transition-colors">
+                                                    <p className="text-[10px] font-semibold text-white/35 uppercase tracking-widest mb-2 truncate" title={fmt(key)}>
+                                                        {fmt(key)}
+                                                    </p>
+                                                    <p className="text-2xl font-black text-white leading-none">
+                                                        {String(value)}
+                                                        {key.includes("pct") && <span className="text-sm text-dns-green ml-0.5">%</span>}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </section>
+                                )}
+                            </>
+                        ) : (
+                            <section>
+                                <p className="text-sm text-white/30">No engine profile generated yet. Analysis is pending.</p>
+                            </section>
+                        )}
+
+                        {/* Match History */}
+                        <section>
+                            <div className="flex items-center justify-between mb-5">
+                                <p className="text-[11px] font-bold uppercase tracking-widest text-white/25">Match History</p>
+                                <span className="text-xs text-white/25">{matches.length} {matches.length === 1 ? "match" : "matches"}</span>
+                            </div>
+
+                            {matches.length > 0 ? (
+                                <div>
+                                    {matches.map((match: Doc<"matches">, i: number) => (
+                                        <div
+                                            key={match._id}
+                                            className={`flex items-center justify-between py-4 ${i < matches.length - 1 ? "border-b border-white/5" : ""} hover:bg-white/2 -mx-2 px-2 rounded-lg transition-colors`}
+                                        >
+                                            <div className="flex items-center gap-4 min-w-0">
+                                                <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
+                                                    <Play className="w-3.5 h-3.5 text-white/30" />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-semibold text-white truncate">
+                                                        {match.opponentName ? `vs ${match.opponentName}` : "Match"}
+                                                    </p>
+                                                    <p className="text-xs text-white/35 mt-0.5">
+                                                        {match.matchDate
+                                                            ? new Date(match.matchDate).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
+                                                            : "Date unknown"}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-4 shrink-0">
+                                                <span className="hidden sm:block text-[11px] font-semibold text-dns-green bg-dns-green/10 border border-dns-green/20 px-2.5 py-1 rounded-md">
+                                                    Analysis Complete
+                                                </span>
+                                                <a
+                                                    href={match.youtubeUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-xs font-semibold text-white/40 hover:text-white flex items-center gap-1.5 transition-colors"
+                                                >
+                                                    Watch <ExternalLink className="w-3.5 h-3.5" />
+                                                </a>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-white/25 py-2">No completed matches recorded for this player.</p>
+                            )}
+                        </section>
+                    </div>
+
+                    {/* ── Right Sidebar ─────────────────────────────────────── */}
+                    <div className="space-y-10">
+
+                        {/* Player Info card */}
+                        <section>
+                            <p className="text-[11px] font-bold uppercase tracking-widest text-white/25 mb-5">Player Info</p>
+                            <div className="space-y-3">
+                                {[
+                                    { label: "Position",    value: position },
+                                    { label: "Nationality", value: nationality },
+                                    { label: "Age",         value: age ? `${age} years` : undefined },
+                                    { label: "Height",      value: height ? `${height} cm` : undefined },
+                                    { label: "Weight",      value: weight ? `${weight} kg` : undefined },
+                                    { label: "Foot",        value: foot },
+                                    { label: "Club",        value: club || "No Club" },
+                                ].filter(r => r.value).map(row => (
+                                    <div key={row.label} className="flex items-center justify-between py-2 border-b border-white/5">
+                                        <span className="text-xs text-white/35">{row.label}</span>
+                                        <span className="text-sm font-semibold text-white capitalize">{row.value}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+
+                        {/* Statistical Twins */}
+                        {profile?.twins && profile.twins.length > 0 && (
+                            <section>
+                                <p className="text-[11px] font-bold uppercase tracking-widest text-white/25 mb-5">Statistical Twins</p>
+                                <div className="space-y-4">
+                                    {profile.twins.map((twin: { player_name: string; similarity: number }, i: number) => {
+                                        const m = twin.player_name.match(/(.+) \[(\d{4})\/(\d{4})\]/);
+                                        const name = m ? `${m[1]} (${m[2]}/${m[3].slice(2)})` : twin.player_name;
+                                        return (
+                                            <div key={i}>
+                                                <div className="flex items-center justify-between mb-1.5">
+                                                    <span className="text-sm text-white/70 truncate flex-1 pr-2">{name}</span>
+                                                    <span className="text-sm font-bold text-amber-400 shrink-0">{Math.round(twin.similarity)}%</span>
+                                                </div>
+                                                <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                                                    <div className="h-full bg-amber-400 rounded-full" style={{ width: `${twin.similarity}%` }} />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </section>
+                        )}
+                    </div>
+
+                </div>
+            </div>
         </div>
     );
 }

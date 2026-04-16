@@ -22,7 +22,7 @@ export default function DashboardLayout({
 
     const navItems = [
         {
-            label: "Dashboard",
+            label: role === "scout" ? "Player Search" : "Dashboard",
             href: `/dashboard/${role}`,
             icon: (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -57,18 +57,18 @@ export default function DashboardLayout({
     };
 
     return (
-        <div className="min-h-screen bg-[#0A0A0F] text-white flex">
+        <div className="min-h-screen bg-dns-bg text-white flex">
             {/* Sidebar */}
             <aside className="fixed left-0 top-0 bottom-0 w-64 bg-[#0d0d14] border-r border-white/5 flex flex-col z-40">
                 {/* Logo */}
                 <div className="px-6 py-5 border-b border-white/5">
                     <Link href="/" className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00FF87] to-[#00cc6a] flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-lg bg-linear-to-br from-dns-green to-dns-green-dim flex items-center justify-center">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0A0A0F" strokeWidth="2.5">
                                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                             </svg>
                         </div>
-                        <span className="text-lg font-bold text-white">DNS<span className="text-[#00FF87]">.</span></span>
+                        <span className="text-lg font-bold text-white">DNS<span className="text-dns-green">.</span></span>
                     </Link>
                 </div>
 
@@ -81,14 +81,14 @@ export default function DashboardLayout({
                                 key={item.href}
                                 href={item.href}
                                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive
-                                        ? "bg-[#00FF87]/10 text-[#00FF87]"
+                                        ? "bg-dns-green/10 text-dns-green"
                                         : "text-white/50 hover:text-white hover:bg-white/5"
                                     }`}
                             >
                                 {item.icon}
                                 {item.label}
                                 {item.badge && (
-                                    <span className="ml-auto bg-[#00FF87] text-[#0A0A0F] text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                                    <span className="ml-auto bg-dns-green text-dns-bg text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                                         {item.badge > 9 ? "9+" : item.badge}
                                     </span>
                                 )}
@@ -100,7 +100,7 @@ export default function DashboardLayout({
                 {/* User info */}
                 <div className="px-3 py-4 border-t border-white/5">
                     <div className="flex items-center gap-3 px-3 mb-3">
-                        <div className="w-9 h-9 rounded-full bg-[#00FF87]/10 flex items-center justify-center text-sm font-bold text-[#00FF87]">
+                        <div className="w-9 h-9 rounded-full bg-dns-green/10 flex items-center justify-center text-sm font-bold text-dns-green">
                             {user?.name?.charAt(0)?.toUpperCase() ?? "?"}
                         </div>
                         <div className="flex-1 min-w-0">

@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { FilterPanel, FilterState } from "@/components/scout/FilterPanel";
 import { PlayerRow } from "@/components/scout/PlayerRow";
-import { Button } from "@/components/ui/button";
+import type { ScoutSearchPlayer } from "@/components/scout/PlayerRow";
 
 export default function ScoutDashboard() {
   const [filters, setFilters] = useState<FilterState>({
@@ -18,20 +18,19 @@ export default function ScoutDashboard() {
     preferredFoot: 'any'
   });
 
-  const rawProfiles = useQuery(api.engineProfiles.getProfiles, {
-    unit: filters.unit !== "all" ? filters.unit : undefined,
-    topArchetype: filters.topArchetype !== "any" ? filters.topArchetype : undefined,
-    archetypeThreshold: filters.archetypeThreshold > 0 ? filters.archetypeThreshold : undefined,
-    minMatches: filters.minMatches > 0 ? filters.minMatches : undefined,
+  const rawProfiles = useQuery(api.users.searchPlayers, {
+    position: filters.unit !== "all" ? filters.unit : undefined,
+    minAge: filters.ageRange[0],
+    maxAge: filters.ageRange[1],
+    foot: filters.preferredFoot !== 'any' ? (filters.preferredFoot as "left" | "right" | "both") : undefined,
+    minAnalyzedMatches: filters.minMatches > 0 ? filters.minMatches : undefined,
   });
-
-  const addMock = useMutation(api.engineProfiles.addMockProfile);
 
   // We need to calculate a simulated "Match %" score since we don't have an ElasticSearch backend yet.
   // We use a stable hashing function so the score stays the same for a player during navigation.
   const filterHash = JSON.stringify(filters).length;
   
-  const generateMatchScore = (profile: any) => {
+  const generateMatchScore = (profile: { _id: string }) => {
     let hash = 0;
     const str = profile._id + filterHash;
     for (let i = 0; i < str.length; i++) {
@@ -74,14 +73,6 @@ export default function ScoutDashboard() {
                   Discover talent matching your exact criteria, ranked by similarity.
                 </p>
               </div>
-              
-              <Button 
-                variant="outline" 
-                onClick={() => addMock().catch(console.error)}
-                className="bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white/70 hover:text-white transition-all shadow-lg hidden" // Hidden but accessible for debug
-              >
-                Load Mock Profile
-              </Button>
             </div>
 
             {/* Metrics Bar */}
@@ -116,7 +107,7 @@ export default function ScoutDashboard() {
         ) : (
           <div className="space-y-3 pb-12">
             {processedProfiles.map((p) => (
-              <PlayerRow key={p._id} profile={p as any} matchScore={p.matchScore} />
+              <PlayerRow key={p._id} profile={p as ScoutSearchPlayer} matchScore={p.matchScore} />
             ))}
           </div>
         )}
