@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { internal } from "./_generated/api";
 
 // ── Create match summary (finalize analysis) ─────────────────────────────
 export const createSummary = mutation({
@@ -57,6 +58,13 @@ export const createSummary = mutation({
             relatedId: args.matchId,
             isRead: false,
             createdAt: Date.now(),
+        });
+
+        // Trigger Kashaf engine
+        await ctx.scheduler.runAfter(0, internal.engine.triggerEngineJob, {
+            matchId: args.matchId,
+            playerId: match.playerId,
+            analystId: userId,
         });
 
         return summaryId;

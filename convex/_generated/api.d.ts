@@ -11,6 +11,8 @@
 import type * as analysisEvents from "../analysisEvents.js";
 import type * as analysisRequests from "../analysisRequests.js";
 import type * as auth from "../auth.js";
+import type * as engine from "../engine.js";
+import type * as engineJobs from "../engineJobs.js";
 import type * as engineProfiles from "../engineProfiles.js";
 import type * as http from "../http.js";
 import type * as matchSummaries from "../matchSummaries.js";
@@ -31,6 +33,8 @@ declare const fullApi: ApiFromModules<{
   analysisEvents: typeof analysisEvents;
   analysisRequests: typeof analysisRequests;
   auth: typeof auth;
+  engine: typeof engine;
+  engineJobs: typeof engineJobs;
   engineProfiles: typeof engineProfiles;
   http: typeof http;
   matchSummaries: typeof matchSummaries;

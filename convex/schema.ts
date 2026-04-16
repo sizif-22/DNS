@@ -205,4 +205,19 @@ export default defineSchema({
     filters: v.any(),
     createdAt: v.number(),
   }).index("by_scoutId", ["scoutId"]),
+  // ── Engine Jobs ────────────────────────────────────────────────────────
+  engineJobs: defineTable({
+    jobId: v.string(),
+    matchId: v.id("matches"),
+    playerId: v.id("users"),
+    analystId: v.id("users"),
+    unit: v.string(),
+    status: v.union(v.literal("queued"), v.literal("running"), v.literal("completed"), v.literal("failed")),
+    requestPayload: v.optional(v.any()),
+    report: v.optional(v.any()),
+    error: v.optional(v.any()),
+    createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+    completedAt: v.optional(v.number()),
+  }).index("by_jobId", ["jobId"]),
 });
