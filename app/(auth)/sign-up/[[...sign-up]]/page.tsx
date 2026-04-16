@@ -138,13 +138,11 @@ export default function SignUpPage() {
             {/* Logo */}
             <div className="text-center mb-10">
                 <Link href="/" className="inline-flex items-center gap-2 group">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00FF87] to-[#00cc6a] flex items-center justify-center shadow-lg shadow-[#00FF87]/20">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0A0A0F" strokeWidth="2.5">
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                        </svg>
+                    <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-[#00FF87]/20">
+                        <img src="/KASHAF.png" alt="KASHAF Logo" className="w-full h-full object-cover" />
                     </div>
                     <span className="text-2xl font-bold text-white tracking-tight">
-                        DNS<span className="text-[#00FF87]">.</span>
+                        KASHAF<span className="text-[#00FF87]">.</span>
                     </span>
                 </Link>
             </div>
@@ -153,7 +151,7 @@ export default function SignUpPage() {
             {step === "role" && (
                 <div className="animate-fade-in-up">
                     <h1 className="text-2xl font-bold text-white text-center mb-2">
-                        Join DNS
+                        Join KASHAF
                     </h1>
                     <p className="text-white/50 text-center mb-8">
                         Choose your role to get started

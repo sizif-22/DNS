@@ -11,13 +11,11 @@ export default function Footer() {
                     {/* Brand */}
                     <div className="col-span-2 md:col-span-1">
                         <Link href="/" className="flex items-center gap-2 mb-4">
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00FF87] to-[#00cc6a] flex items-center justify-center">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A0A0F" strokeWidth="2.5">
-                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                                </svg>
+                            <div className="w-8 h-8 rounded-lg overflow-hidden">
+                                <img src="/KASHAF.png" alt="KASHAF Logo" className="w-full h-full object-cover" />
                             </div>
                             <span className="text-lg font-bold text-white">
-                                DNS<span className="text-[#00FF87]">.</span>
+                                KASHAF<span className="text-[#00FF87]">.</span>
                             </span>
                         </Link>
                         <p className="text-sm text-white/40 leading-relaxed">
@@ -96,7 +94,7 @@ export default function Footer() {
                 {/* Bottom bar */}
                 <div className="border-t border-white/5 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <p className="text-xs text-white/30">
-                        © {new Date().getFullYear()} Discover a New Star. All rights reserved.
+                        © {new Date().getFullYear()} KASHAF. All rights reserved.
                     </p>
                     <div className="flex items-center gap-4">
                         {/* Social icons */}

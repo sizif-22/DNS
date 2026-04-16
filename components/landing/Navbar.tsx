@@ -50,13 +50,11 @@ export default function Navbar() {
             <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2 group">
-                    <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#00FF87] to-[#00cc6a] flex items-center justify-center shadow-lg shadow-[#00FF87]/20 group-hover:shadow-[#00FF87]/40 transition-shadow">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0A0A0F" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                        </svg>
+                    <div className="w-9 h-9 rounded-lg overflow-hidden shadow-lg shadow-[#00FF87]/20 group-hover:shadow-[#00FF87]/40 transition-shadow">
+                        <img src="/KASHAF.png" alt="KASHAF Logo" className="w-full h-full object-cover" />
                     </div>
                     <span className="text-xl font-bold text-white tracking-tight">
-                        DNS<span className="text-[#00FF87]">.</span>
+                        KASHAF<span className="text-[#00FF87]">.</span>
                     </span>
                 </Link>
 

@@ -9,7 +9,7 @@ const TESTIMONIALS = [
         role: "Player",
         club: "FC Hannover U21",
         quote:
-            "DNS changed everything for me. An analyst broke down my game, highlighted what scouts wanted to see, and within weeks I had two clubs reaching out.",
+            "KASHAF changed everything for me. An analyst broke down my game, highlighted what scouts wanted to see, and within weeks I had two clubs reaching out.",
         avatar: "MO",
         color: "#00FF87",
     },
@@ -36,7 +36,7 @@ const TESTIMONIALS = [
         role: "Player",
         club: "Free Agent",
         quote:
-            "Coming from a smaller league, visibility was my biggest challenge. DNS gave me a professional profile that scouts actually look at.",
+            "Coming from a smaller league, visibility was my biggest challenge. KASHAF gave me a professional profile that scouts actually look at.",
         avatar: "AD",
         color: "#00FF87",
     },
@@ -54,7 +54,7 @@ const TESTIMONIALS = [
         role: "Scout",
         club: "J-League Academy",
         quote:
-            "We've discovered three signings through DNS this season. The quality of analysis data makes our scouting process significantly more efficient.",
+            "We've discovered three signings through KASHAF this season. The quality of analysis data makes our scouting process significantly more efficient.",
         avatar: "HT",
         color: "#8B5CF6",
     },
@@ -78,7 +78,7 @@ export default function Testimonials() {
                         What They Say
                     </h2>
                     <p className="text-lg text-white/50 max-w-xl mx-auto">
-                        Players, analysts, and scouts are already changing the game with DNS.
+                        Players, analysts, and scouts are already changing the game with KASHAF.
                     </p>
                 </motion.div>
 

@@ -23,11 +23,11 @@ const anton = Anton({
 });
 
 export const metadata: Metadata = {
-  title: "DNS — Discover a New Star",
+  title: "KASHAF — Discover a New Star",
   description:
     "Get Discovered. Get Analyzed. Get Signed. The football talent discovery platform connecting players, analysts, and scouts.",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/KASHAF.png",
   },
 };
 
